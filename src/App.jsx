@@ -3,15 +3,17 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Bouquet } from './components/Bouquet.jsx';
 import { FallingPetals } from './components/FallingPetals.jsx';
-import { Heart, Volume2, VolumeX } from 'lucide-react';
+import { Heart, Volume2, VolumeX, X } from 'lucide-react';
 
 const YT_VIDEO_ID = 'ZjNi43BXWXM';
 const YT_START_SECONDS = 58;
 const YT_END_SECONDS = 248;
 
 function Scene() {
+  const mobile = typeof window !== 'undefined' && window.innerWidth < 700;
+
   return (
-    <Canvas camera={{ position: [0, 2.4, 9.35], fov: 31 }} dpr={[1, 1.75]} gl={{ antialias: true, alpha: false }}>
+    <Canvas camera={{ position: mobile ? [0, 2.4, 11.5] : [0, 2.4, 9.35], fov: mobile ? 50 : 31 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: false }}>
       <color attach="background" args={['#120910']} />
       <fog attach="fog" args={['#120910', 12.2, 22]} />
       <ambientLight intensity={0.86} />
@@ -20,7 +22,7 @@ function Scene() {
       <pointLight position={[0, 3.4, 3.8]} intensity={10.5} color="#ff6c7c" distance={15} />
       <pointLight position={[0, 0.9, -4.5]} intensity={4.2} color="#90223a" distance={14} />
 
-      <group position={[0, -0.28, 0]} scale={0.97}>
+      <group position={[0, -0.28, 0]} scale={mobile ? 0.78 : 0.97}>
         <Bouquet />
       </group>
       <FallingPetals />
@@ -65,9 +67,10 @@ function loadYouTubeAPI(onReady) {
 
 export default function App() {
   const playerRef = useRef(null);
-  const playerWantsPlayRef = useRef(true);
+  const playerWantsPlayRef = useRef(false);
   const [sound, setSound] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [musicPlayerOpen, setMusicPlayerOpen] = useState(false);
   const [ready, setReady] = useState(false);
   const [intro, setIntro] = useState(true);
 
@@ -77,10 +80,9 @@ export default function App() {
     playerRef.current = new window.YT.Player('youtube-romantic-player', {
       videoId: YT_VIDEO_ID,
       playerVars: {
-        autoplay: 1,
-        controls: 0,
-        disablekb: 1,
-        fs: 0,
+        autoplay: 0,
+        controls: 1,
+        fs: 1,
         modestbranding: 1,
         rel: 0,
         playsinline: 1,
@@ -89,6 +91,7 @@ export default function App() {
         playlist: YT_VIDEO_ID,
         end: YT_END_SECONDS,
         iv_load_policy: 3,
+        origin: window.location.origin,
       },
       events: {
         onReady: (event) => {
@@ -128,21 +131,27 @@ export default function App() {
 
     playerWantsPlayRef.current = true;
     setAutoplayBlocked(false);
-
-    loadYouTubeAPI(() => {
-      if (!playerRef.current) {
-        buildPlayer();
-        return;
-      }
-      playerRef.current.seekTo?.(YT_START_SECONDS, true);
-      playerRef.current.setVolume?.(38);
-      playerRef.current.playVideo?.();
+    setMusicPlayerOpen(true);
+    window.requestAnimationFrame(() => {
+      loadYouTubeAPI(() => {
+        if (!playerRef.current) {
+          buildPlayer();
+          return;
+        }
+        playerRef.current.seekTo?.(YT_START_SECONDS, true);
+        playerRef.current.setVolume?.(38);
+        playerRef.current.playVideo?.();
+      });
     });
   }, [buildPlayer, sound]);
 
-  useEffect(() => {
-    loadYouTubeAPI(buildPlayer);
-  }, [buildPlayer]);
+  const closeMusicPlayer = useCallback(() => {
+    playerWantsPlayRef.current = false;
+    playerRef.current?.pauseVideo?.();
+    setSound(false);
+    setAutoplayBlocked(false);
+    setMusicPlayerOpen(false);
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -178,7 +187,7 @@ export default function App() {
         >
           <span className="sound-note">{sound ? <Volume2 /> : <VolumeX />}</span>
         </button>
-        {autoplayBlocked && <span className="sound-hint">Chạm để bật nhạc</span>}
+        {autoplayBlocked && <span className="sound-hint">Chạm nút phát trong khung nhạc</span>}
         <button className="icon-button help-button" aria-label="Interaction help" title="Drag to rotate · Scroll to zoom">
           <span>?</span>
         </button>
@@ -221,7 +230,17 @@ export default function App() {
         HAPPY 20/10<br />MY LOVE <span>✳</span>
       </div>
 
-      <div id="youtube-romantic-player" className="youtube-player-host" aria-hidden="true" />
+      <div className={`music-player-backdrop ${musicPlayerOpen ? 'is-open' : ''}`} aria-hidden={!musicPlayerOpen}>
+        <section className="music-player-card" role="dialog" aria-modal="true" aria-label="Trình phát nhạc YouTube">
+          <div className="music-player-heading">
+            <span>NHẠC DÀNH TẶNG EM</span>
+            <button className="music-player-close" onClick={closeMusicPlayer} aria-label="Đóng trình phát nhạc">
+              <X />
+            </button>
+          </div>
+          <div id="youtube-romantic-player" className="youtube-player-host" />
+        </section>
+      </div>
 
       {intro && (
         <div className="intro-curtain">

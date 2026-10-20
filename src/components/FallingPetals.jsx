@@ -74,6 +74,7 @@ function createStarGeometry() {
 }
 
 function createSmallEffectData(count, seed) {
+  const scaleFactor = typeof window !== 'undefined' && window.innerWidth < 700 ? 0.58 : 1;
   return Array.from({ length: count }, (_, i) => ({
     x: (rand(i + seed) - 0.5) * 9,
     y: rand(i + seed + 10) * 9 - 2.8,
@@ -81,7 +82,7 @@ function createSmallEffectData(count, seed) {
     speed: 0.3 + rand(i + seed + 30) * 0.42,
     phase: rand(i + seed + 40) * Math.PI * 2,
     spin: (rand(i + seed + 50) - 0.5) * 0.65,
-    scale: 0.34 + rand(i + seed + 60) * 0.2,
+    scale: (0.34 + rand(i + seed + 60) * 0.2) * scaleFactor,
   }));
 }
 
