@@ -13,7 +13,7 @@ function Scene() {
   const mobile = typeof window !== 'undefined' && window.innerWidth < 700;
 
   return (
-    <Canvas camera={{ position: mobile ? [0, 2.4, 11.5] : [0, 2.4, 9.35], fov: mobile ? 50 : 31 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: false }}>
+    <Canvas camera={{ position: mobile ? [0, 2.4, 10.5] : [0, 2.4, 9.35], fov: mobile ? 50 : 31 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: false }}>
       <color attach="background" args={['#120910']} />
       <fog attach="fog" args={['#120910', 12.2, 22]} />
       <ambientLight intensity={0.86} />
@@ -22,7 +22,7 @@ function Scene() {
       <pointLight position={[0, 3.4, 3.8]} intensity={10.5} color="#ff6c7c" distance={15} />
       <pointLight position={[0, 0.9, -4.5]} intensity={4.2} color="#90223a" distance={14} />
 
-      <group position={[0, -0.28, 0]} scale={mobile ? 0.78 : 0.97}>
+      <group position={[0, -0.28, 0]} scale={mobile ? 0.9 : 0.97}>
         <Bouquet />
       </group>
       <FallingPetals />
@@ -80,7 +80,7 @@ export default function App() {
     playerRef.current = new window.YT.Player('youtube-romantic-player', {
       videoId: YT_VIDEO_ID,
       playerVars: {
-        autoplay: 0,
+        autoplay: 1,
         controls: 1,
         fs: 1,
         modestbranding: 1,
