@@ -6,9 +6,9 @@ Interactive 3D bouquet experience inspired by the supplied bouquet photo.
 
 - Rebuilt the bouquet so the **rose dome, wrapping paper, collar and ribbon align together** as one believable bouquet.
 - Added a **Vietnamese Women's Day 20/10 dedication** for a girlfriend.
-- Added **romantic background music** using the browser Web Audio API, so no external audio file is required.
+- Added romantic background music from the supplied YouTube track, with a best-effort autoplay attempt.
 - Increased bouquet depth and density so the roses feel more volumetric and realistic.
-- Kept drag-to-rotate, zoom, reset and falling petals interactions.
+- Added falling petals, small flowers, hearts and stars, plus drag-to-rotate and zoom interactions.
 
 ## Run
 
@@ -32,5 +32,5 @@ This bouquet is still a **procedural 3D approximation**, not a photogrammetry re
 
 ## Music
 
-The sound button uses the supplied YouTube track via the YouTube IFrame API, starts playback at 0:58, and loops back to 0:58 after 4:08.
+The music starts at 0:58 and loops back to 0:58 after 4:08. Browsers may block autoplay; use the sound button if playback does not start.
 # Eternal_Roses

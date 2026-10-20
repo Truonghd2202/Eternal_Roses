@@ -212,19 +212,19 @@ function RoseInstances() {
 }
 
 function BabyBreath() {
-  const count = 260;
+  const count = 112;
   const points = useMemo(
     () => Array.from({ length: count }, (_, i) => {
       const angle = rnd(i + 2) * Math.PI * 2;
-      const radius = 1.55 + rnd(i + 8) * 0.68;
-      const y = 0.66 + rnd(i + 10) * 1.35;
-      const inward = 0.1 + rnd(i + 12) * 0.18;
+      const radius = 1.72 + rnd(i + 8) * 0.4;
+      const y = 1.02 + rnd(i + 10) * 0.92;
+      const inward = 0.08 + rnd(i + 12) * 0.14;
       return {
         x: Math.cos(angle) * radius,
         y,
         z: Math.sin(angle) * radius * 1.2,
-        s: 0.03 + rnd(i + 14) * 0.018,
-        stemY: 0.48 + inward,
+        s: 0.022 + rnd(i + 14) * 0.014,
+        stemY: 0.82 + inward,
       };
     }),
     [],
@@ -235,7 +235,7 @@ function BabyBreath() {
       {points.map((p, i) => (
         <group key={i} position={[p.x, p.y, p.z]}>
           <mesh position={[0, -(p.y - p.stemY) / 2, 0]}>
-            <cylinderGeometry args={[0.005, 0.007, p.y - p.stemY, 5]} />
+            <cylinderGeometry args={[0.0035, 0.0045, p.y - p.stemY, 5]} />
             <meshStandardMaterial color="#71896e" roughness={1} />
           </mesh>
           <mesh>
@@ -254,24 +254,34 @@ function BabyBreath() {
 
 function PaperLayer({ index, total, inner = false }) {
   const geometry = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(inner ? 2.4 : 3.25, inner ? 1.9 : 2.55, 12, 16);
+    const width = inner ? 2.2 : 2.85;
+    const height = inner ? 1.6 : 2.0;
+    const cornerRadius = inner ? 0.3 : 0.38;
+    const geo = new THREE.PlaneGeometry(width, height, 20, 20);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i += 1) {
-      const x = pos.getX(i);
+      const rawX = pos.getX(i);
       const y = pos.getY(i);
-      const bend = Math.pow((y + (inner ? 0.95 : 1.25)) / (inner ? 1.9 : 2.55), 1.2);
-      pos.setZ(i, Math.abs(x) * 0.12 + bend * (inner ? 0.62 : 0.92));
-      pos.setX(i, x + Math.sin((y + index * 0.25) * 2.5) * 0.05);
+      const absY = Math.abs(y);
+      const cornerStart = height / 2 - cornerRadius;
+      const cornerDepth = Math.max(0, absY - cornerStart);
+      const roundedHalfWidth = width / 2 - cornerRadius + Math.sqrt(
+        Math.max(0, cornerRadius * cornerRadius - cornerDepth * cornerDepth),
+      );
+      const x = (rawX / (width / 2)) * roundedHalfWidth;
+      const bend = Math.pow((y + height / 2) / height, 1.15);
+      pos.setZ(i, Math.abs(x) * 0.075 + bend * (inner ? 0.34 : 0.52));
+      pos.setX(i, x + Math.sin((y + index * 0.25) * 2.1) * 0.035);
     }
     geo.computeVertexNormals();
     return geo;
   }, [index, inner]);
 
   const angle = (index / total) * Math.PI * 2;
-  const radius = inner ? 1.35 : 1.75;
+  const radius = inner ? 1.72 : 2.08;
   const x = Math.cos(angle) * radius;
   const z = Math.sin(angle) * radius * 1.05;
-  const y = inner ? 0.64 : 0.43;
+  const y = inner ? -0.18 : 0;
   const rotationY = -angle + Math.PI / 2;
   const rotationZ = Math.cos(angle * 2) * 0.1 + (inner ? 0.08 : 0.16);
 
@@ -279,15 +289,11 @@ function PaperLayer({ index, total, inner = false }) {
     <group position={[x, y, z]} rotation={[0.05, rotationY, rotationZ]}>
       <mesh geometry={geometry}>
         <meshPhysicalMaterial
-          color={inner ? '#fff6f7' : '#fde7ea'}
-          roughness={0.48}
-          transmission={0.05}
-          thickness={0.24}
+          color={inner ? '#dda7b0' : '#cc8794'}
+          roughness={0.72}
+          clearcoat={0.08}
           side={THREE.DoubleSide}
         />
-      </mesh>
-      <mesh geometry={geometry} position={[0, 0, 0.014]}>
-        <meshStandardMaterial color={inner ? '#efc3c8' : '#eab8af'} roughness={0.72} side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
@@ -323,7 +329,7 @@ function Paper() {
       ))}
       <mesh position={[0, -0.5, 0]} rotation={[0, 0, Math.PI]}>
         <coneGeometry args={[0.72, 1.6, 32, 1, true]} />
-        <meshPhysicalMaterial color="#fff0f2" roughness={0.56} transmission={0.03} thickness={0.18} side={THREE.DoubleSide} />
+        <meshPhysicalMaterial color="#c98592" roughness={0.72} clearcoat={0.08} side={THREE.DoubleSide} />
       </mesh>
       <mesh position={[0, -0.54, 0]}>
         <cylinderGeometry args={[0.26, 0.38, 0.8, 20]} />

@@ -4,6 +4,8 @@ import * as THREE from 'three';
 
 const COUNT = typeof window !== 'undefined' && window.innerWidth < 700 ? 42 : 86;
 const FLOWER_COUNT = typeof window !== 'undefined' && window.innerWidth < 700 ? 4 : 7;
+const HEART_COUNT = typeof window !== 'undefined' && window.innerWidth < 700 ? 5 : 8;
+const STAR_COUNT = typeof window !== 'undefined' && window.innerWidth < 700 ? 7 : 12;
 const rand = (n) => {
   const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
   return x - Math.floor(x);
@@ -43,9 +45,72 @@ function createFlowerGeometry() {
   return geometry;
 }
 
+function createHeartGeometry() {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, -0.42);
+  shape.bezierCurveTo(-0.16, -0.28, -0.5, -0.04, -0.48, 0.2);
+  shape.bezierCurveTo(-0.46, 0.48, -0.12, 0.5, 0, 0.27);
+  shape.bezierCurveTo(0.12, 0.5, 0.46, 0.48, 0.48, 0.2);
+  shape.bezierCurveTo(0.5, -0.04, 0.16, -0.28, 0, -0.42);
+  const geometry = new THREE.ShapeGeometry(shape, 12);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function createStarGeometry() {
+  const shape = new THREE.Shape();
+  for (let i = 0; i < 10; i += 1) {
+    const angle = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    const radius = i % 2 === 0 ? 0.34 : 0.15;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    if (i === 0) shape.moveTo(x, y);
+    else shape.lineTo(x, y);
+  }
+  shape.closePath();
+  const geometry = new THREE.ShapeGeometry(shape, 8);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function createSmallEffectData(count, seed) {
+  return Array.from({ length: count }, (_, i) => ({
+    x: (rand(i + seed) - 0.5) * 9,
+    y: rand(i + seed + 10) * 9 - 2.8,
+    z: (rand(i + seed + 20) - 0.5) * 6,
+    speed: 0.3 + rand(i + seed + 30) * 0.42,
+    phase: rand(i + seed + 40) * Math.PI * 2,
+    spin: (rand(i + seed + 50) - 0.5) * 0.65,
+    scale: 0.34 + rand(i + seed + 60) * 0.2,
+  }));
+}
+
+function updateSmallEffects(mesh, items, dummy, time, delta) {
+  items.forEach((item, i) => {
+    item.y -= item.speed * delta;
+    if (item.y < -4.8) {
+      item.y = 5.5 + rand(i + Math.floor(time) * 19) * 2;
+      item.x = (rand(i + Math.floor(time) + 61) - 0.5) * 9;
+      item.z = (rand(i + Math.floor(time) + 71) - 0.5) * 6;
+    }
+    dummy.position.set(
+      item.x + Math.sin(time * 0.38 + item.phase) * 0.32,
+      item.y,
+      item.z,
+    );
+    dummy.rotation.set(0, 0, time * 0.28 + item.phase + item.spin);
+    dummy.scale.setScalar(item.scale);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  });
+  mesh.instanceMatrix.needsUpdate = true;
+}
+
 export function FallingPetals() {
   const mesh = useRef();
   const flowers = useRef();
+  const hearts = useRef();
+  const stars = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const data = useMemo(
     () =>
@@ -74,8 +139,12 @@ export function FallingPetals() {
     })),
     [],
   );
+  const heartData = useMemo(() => createSmallEffectData(HEART_COUNT, 121), []);
+  const starData = useMemo(() => createSmallEffectData(STAR_COUNT, 221), []);
   const geometry = useMemo(createPetalGeometry, []);
   const flowerGeometry = useMemo(createFlowerGeometry, []);
+  const heartGeometry = useMemo(createHeartGeometry, []);
+  const starGeometry = useMemo(createStarGeometry, []);
 
   useFrame(({ clock }, delta) => {
     if (!mesh.current) return;
@@ -125,6 +194,9 @@ export function FallingPetals() {
       flowers.current.setMatrixAt(i, dummy.matrix);
     });
     flowers.current.instanceMatrix.needsUpdate = true;
+
+    updateSmallEffects(hearts.current, heartData, dummy, t, d);
+    updateSmallEffects(stars.current, starData, dummy, t, d);
   });
 
   return (
@@ -134,6 +206,12 @@ export function FallingPetals() {
       </instancedMesh>
       <instancedMesh ref={flowers} args={[flowerGeometry, undefined, FLOWER_COUNT]}>
         <meshStandardMaterial color="#f4b9c8" roughness={0.55} side={THREE.DoubleSide} />
+      </instancedMesh>
+      <instancedMesh ref={hearts} args={[heartGeometry, undefined, HEART_COUNT]}>
+        <meshStandardMaterial color="#ff829c" roughness={0.48} side={THREE.DoubleSide} />
+      </instancedMesh>
+      <instancedMesh ref={stars} args={[starGeometry, undefined, STAR_COUNT]}>
+        <meshStandardMaterial color="#e7c881" roughness={0.42} side={THREE.DoubleSide} />
       </instancedMesh>
     </>
   );

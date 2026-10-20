@@ -244,81 +244,6 @@ button { font: inherit; color: inherit; }
   font-weight: 600;
 }
 
-.controls {
-  height: 47px;
-  width: max-content;
-  max-width: 96%;
-  margin: auto;
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 0 16px;
-  border: 1px solid #fff4e01e;
-  border-radius: 30px;
-  background: rgba(41, 20, 29, 0.78);
-  box-shadow: 0 8px 30px rgba(9, 4, 8, 0.42);
-  backdrop-filter: blur(16px);
-}
-
-.controls button {
-  height: 40px;
-  border: 0;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 0;
-  color: #cdb7b3;
-  white-space: nowrap;
-  font-size: 9px;
-  transition: color .2s;
-}
-
-.controls button:hover,
-.controls button.active { color: #fff5ed; }
-.controls button svg { width: 14px; height: 14px; color: #d9b878; stroke-width: 1.4; }
-
-.control-divider { height: 20px; width: 1px; background: #fff2df21; }
-
-.switch {
-  width: 20px;
-  height: 11px;
-  border-radius: 8px;
-  background: #6e5a5d;
-  display: block;
-  position: relative;
-  transition: .2s;
-}
-
-.switch i {
-  position: absolute;
-  left: 2px;
-  top: 2px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #e7d3cd;
-  transition: .2s;
-}
-
-.active .switch { background: #9e5864; }
-.active .switch i { left: 11px; background: #ffe5e5; }
-
-.gesture-hint {
-  margin-top: 11px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  color: #907f7d;
-  font-size: 8px;
-  letter-spacing: .07em;
-}
-
-.gesture-hint svg { width: 12px; height: 12px; stroke-width: 1.3; }
-.gesture-hint i { height: 10px; width: 1px; background: #ffffff30; margin: 0 3px; }
-
 .corner-mark {
   position: absolute;
   z-index: 3;
@@ -428,12 +353,6 @@ button { font: inherit; color: inherit; }
   .dedication { margin-bottom: 12px; padding: 14px 14px; border-radius: 18px; }
   .dedication-title { font-size: 12px; }
   .dedication-text { font-size: 12px; line-height: 1.6; }
-  .controls { gap: 9px; padding: 0 11px; height: 45px; }
-  .controls button { gap: 5px; font-size: 8px; }
-  .controls button svg { width: 13px; }
-  .control-divider { height: 17px; }
-  .switch { display: none; }
-  .gesture-hint { margin-top: 9px; font-size: 8px; }
   .ambient-one { width: 90vw; height: 90vw; left: 5%; top: 12%; }
 }
 
@@ -449,7 +368,6 @@ button { font: inherit; color: inherit; }
   .dedication { margin-bottom: 11px; padding: 14px 17px; }
   .dedication-title { font-size: 13px; }
   .dedication-text { font-size: 13px; }
-  .controls { height: 42px; }
   .subtitle { margin: 7px 0 11px; }
   .scene-wrap { inset: -4% 0 -14%; }
   .wordmark { top: 24px; }

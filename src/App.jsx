@@ -3,13 +3,13 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Bouquet } from './components/Bouquet.jsx';
 import { FallingPetals } from './components/FallingPetals.jsx';
-import { Heart, Mouse, Move3D, RotateCcw, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Heart, Volume2, VolumeX } from 'lucide-react';
 
 const YT_VIDEO_ID = 'ZjNi43BXWXM';
 const YT_START_SECONDS = 58;
 const YT_END_SECONDS = 248;
 
-function Scene({ petals, autoRotate, controlsRef }) {
+function Scene() {
   return (
     <Canvas camera={{ position: [0, 2.4, 9.35], fov: 31 }} dpr={[1, 1.75]} gl={{ antialias: true, alpha: false }}>
       <color attach="background" args={['#120910']} />
@@ -23,10 +23,9 @@ function Scene({ petals, autoRotate, controlsRef }) {
       <group position={[0, -0.28, 0]} scale={0.97}>
         <Bouquet />
       </group>
-      {petals && <FallingPetals />}
+      <FallingPetals />
 
       <OrbitControls
-        ref={controlsRef}
         target={[0, 0.68, 0]}
         minDistance={6.5}
         maxDistance={11.5}
@@ -35,8 +34,8 @@ function Scene({ petals, autoRotate, controlsRef }) {
         enablePan={false}
         enableDamping
         dampingFactor={0.055}
-        autoRotate={autoRotate}
-        autoRotateSpeed={0.22}
+        autoRotate
+        autoRotateSpeed={0.32}
       />
     </Canvas>
   );
@@ -65,23 +64,12 @@ function loadYouTubeAPI(onReady) {
 }
 
 export default function App() {
-  const controlsRef = useRef();
   const playerRef = useRef(null);
   const playerWantsPlayRef = useRef(true);
-  const [petals, setPetals] = useState(true);
-  const [autoRotate, setAutoRotate] = useState(true);
   const [sound, setSound] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const [ready, setReady] = useState(false);
   const [intro, setIntro] = useState(true);
-
-  const reset = useCallback(() => {
-    if (controlsRef.current) {
-      controlsRef.current.reset();
-      controlsRef.current.target.set(0, 0.68, 0);
-      controlsRef.current.update();
-    }
-  }, []);
 
   const buildPlayer = useCallback(() => {
     if (playerRef.current || !(window.YT && window.YT.Player)) return;
@@ -171,14 +159,6 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape') reset();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [reset]);
-
   return (
     <main className={`experience ${intro ? 'is-intro' : 'is-ready'}`}>
       <div className="ambient ambient-one" />
@@ -207,7 +187,7 @@ export default function App() {
       <div className="for-you">FOR YOU</div>
 
       <div className="scene-wrap">
-        <Scene petals={petals} autoRotate={autoRotate} controlsRef={controlsRef} />
+        <Scene />
       </div>
 
       <div className="side-caption">
@@ -235,33 +215,6 @@ export default function App() {
           </p>
         </div>
 
-        <div className="controls" aria-label="Bouquet controls">
-          <button onClick={() => setAutoRotate((v) => !v)} className={autoRotate ? 'active' : ''} aria-pressed={autoRotate}>
-            <RotateCcw />
-            <span>Auto rotate</span>
-            <b className="switch">
-              <i />
-            </b>
-          </button>
-          <span className="control-divider" />
-          <button onClick={reset}>
-            <Move3D />
-            <span>Reset view</span>
-          </button>
-          <span className="control-divider" />
-          <button onClick={() => setPetals((v) => !v)} className={petals ? 'active' : ''} aria-pressed={petals}>
-            <Sparkles />
-            <span>Falling petals</span>
-            <b className="switch">
-              <i />
-            </b>
-          </button>
-        </div>
-
-        <div className="gesture-hint">
-          <Mouse /> <span>Drag to explore</span>
-          <i /> <span>Scroll to zoom</span>
-        </div>
       </section>
 
       <div className="corner-mark">
