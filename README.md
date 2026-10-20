@@ -32,5 +32,5 @@ This bouquet is still a **procedural 3D approximation**, not a photogrammetry re
 
 ## Music
 
-The sound button now uses the supplied YouTube track via the YouTube IFrame API and starts playback from 0:58 when the user presses the music button.
+The sound button uses the supplied YouTube track via the YouTube IFrame API, starts playback at 0:58, and loops back to 0:58 after 4:08.
 # Eternal_Roses

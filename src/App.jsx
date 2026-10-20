@@ -7,6 +7,7 @@ import { Heart, Mouse, Move3D, RotateCcw, Sparkles, Volume2, VolumeX } from 'luc
 
 const YT_VIDEO_ID = 'ZjNi43BXWXM';
 const YT_START_SECONDS = 58;
+const YT_END_SECONDS = 248;
 
 function Scene({ petals, autoRotate, controlsRef }) {
   return (
@@ -98,6 +99,7 @@ export default function App() {
         start: YT_START_SECONDS,
         loop: 1,
         playlist: YT_VIDEO_ID,
+        end: YT_END_SECONDS,
         iv_load_policy: 3,
       },
       events: {
