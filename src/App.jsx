@@ -3,11 +3,9 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Bouquet } from './components/Bouquet.jsx';
 import { FallingPetals } from './components/FallingPetals.jsx';
-import { Heart, Volume2, VolumeX, X } from 'lucide-react';
+import { Heart, Volume2, VolumeX } from 'lucide-react';
 
-const YT_VIDEO_ID = 'ZjNi43BXWXM';
-const YT_START_SECONDS = 58;
-const YT_END_SECONDS = 248;
+const MUSIC_END_SECONDS = 248;
 
 function Scene() {
   const mobile = typeof window !== 'undefined' && window.innerWidth < 700;
@@ -22,7 +20,7 @@ function Scene() {
       <pointLight position={[0, 3.4, 3.8]} intensity={10.5} color="#ff6c7c" distance={15} />
       <pointLight position={[0, 0.9, -4.5]} intensity={4.2} color="#90223a" distance={14} />
 
-      <group position={[0, -0.28, 0]} scale={mobile ? 0.9 : 0.97}>
+      <group position={[0, 0.05, 0]} scale={mobile ? 0.9 : 0.97}>
         <Bouquet />
       </group>
       <FallingPetals />
@@ -32,7 +30,7 @@ function Scene() {
         minDistance={6.5}
         maxDistance={11.5}
         minPolarAngle={0.52}
-        maxPolarAngle={2.18}
+        maxPolarAngle={1.78}
         enablePan={false}
         enableDamping
         dampingFactor={0.055}
@@ -43,128 +41,65 @@ function Scene() {
   );
 }
 
-function loadYouTubeAPI(onReady) {
-  if (window.YT && window.YT.Player) {
-    onReady();
-    return;
-  }
-
-  const previous = window.onYouTubeIframeAPIReady;
-  window.onYouTubeIframeAPIReady = () => {
-    previous?.();
-    onReady();
-  };
-
-  const existing = document.querySelector('script[data-youtube-api="true"]');
-  if (!existing) {
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    tag.async = true;
-    tag.dataset.youtubeApi = 'true';
-    document.body.appendChild(tag);
-  }
-}
-
 export default function App() {
-  const playerRef = useRef(null);
-  const playerWantsPlayRef = useRef(false);
+  const audioRef = useRef(null);
   const [sound, setSound] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
-  const [musicPlayerOpen, setMusicPlayerOpen] = useState(false);
   const [ready, setReady] = useState(false);
   const [intro, setIntro] = useState(true);
 
-  const buildPlayer = useCallback(() => {
-    if (playerRef.current || !(window.YT && window.YT.Player)) return;
-
-    playerRef.current = new window.YT.Player('youtube-romantic-player', {
-      videoId: YT_VIDEO_ID,
-      playerVars: {
-        autoplay: 1,
-        controls: 1,
-        fs: 1,
-        modestbranding: 1,
-        rel: 0,
-        playsinline: 1,
-        start: YT_START_SECONDS,
-        loop: 1,
-        playlist: YT_VIDEO_ID,
-        end: YT_END_SECONDS,
-        iv_load_policy: 3,
-        origin: window.location.origin,
-      },
-      events: {
-        onReady: (event) => {
-          event.target.setVolume(38);
-          if (playerWantsPlayRef.current) {
-            event.target.seekTo(YT_START_SECONDS, true);
-            event.target.playVideo();
-          }
-        },
-        onStateChange: (event) => {
-          if (window.YT && event.data === window.YT.PlayerState.PLAYING) {
-            setSound(true);
-            setAutoplayBlocked(false);
-          }
-          if (window.YT && event.data === window.YT.PlayerState.PAUSED) setSound(false);
-          if (window.YT && event.data === window.YT.PlayerState.ENDED) {
-            event.target.seekTo(YT_START_SECONDS, true);
-            event.target.playVideo();
-          }
-        },
-        onAutoplayBlocked: () => {
-          setSound(false);
-          setAutoplayBlocked(true);
-        },
-      },
-    });
+  const playRecording = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.currentTime >= MUSIC_END_SECONDS) audio.currentTime = 0;
+    try {
+      await audio.play();
+      setSound(true);
+      setAutoplayBlocked(false);
+    } catch {
+      setSound(false);
+      setAutoplayBlocked(true);
+    }
   }, []);
 
   const toggleSound = useCallback(() => {
+    const audio = audioRef.current;
     if (sound) {
-      playerWantsPlayRef.current = false;
-      playerRef.current?.pauseVideo?.();
+      audio?.pause();
       setSound(false);
       setAutoplayBlocked(false);
       return;
     }
-
-    playerWantsPlayRef.current = true;
-    setAutoplayBlocked(false);
-    setMusicPlayerOpen(true);
-    window.requestAnimationFrame(() => {
-      loadYouTubeAPI(() => {
-        if (!playerRef.current) {
-          buildPlayer();
-          return;
-        }
-        playerRef.current.seekTo?.(YT_START_SECONDS, true);
-        playerRef.current.setVolume?.(38);
-        playerRef.current.playVideo?.();
-      });
-    });
-  }, [buildPlayer, sound]);
-
-  const closeMusicPlayer = useCallback(() => {
-    playerWantsPlayRef.current = false;
-    playerRef.current?.pauseVideo?.();
-    setSound(false);
-    setAutoplayBlocked(false);
-    setMusicPlayerOpen(false);
-  }, []);
+    void playRecording();
+  }, [playRecording, sound]);
 
   useEffect(() => {
     const t = setTimeout(() => {
       setIntro(false);
       setReady(true);
+      void playRecording();
     }, 1950);
     return () => clearTimeout(t);
-  }, []);
+  }, [playRecording]);
 
   useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return undefined;
+    const stopAtLimit = () => {
+      if (audio.currentTime >= MUSIC_END_SECONDS) {
+        audio.pause();
+        audio.currentTime = 0;
+        setSound(false);
+      }
+    };
+    const syncPlaybackState = () => setSound(!audio.paused);
+    audio.addEventListener('timeupdate', stopAtLimit);
+    audio.addEventListener('play', syncPlaybackState);
+    audio.addEventListener('pause', syncPlaybackState);
     return () => {
-      playerRef.current?.destroy?.();
-      playerRef.current = null;
+      audio.removeEventListener('timeupdate', stopAtLimit);
+      audio.removeEventListener('play', syncPlaybackState);
+      audio.removeEventListener('pause', syncPlaybackState);
     };
   }, []);
 
@@ -187,7 +122,7 @@ export default function App() {
         >
           <span className="sound-note">{sound ? <Volume2 /> : <VolumeX />}</span>
         </button>
-        {autoplayBlocked && <span className="sound-hint">Chạm nút phát trong khung nhạc</span>}
+        {autoplayBlocked && <span className="sound-hint">Trình duyệt đã chặn tự phát · chạm để bật nhạc</span>}
         <button className="icon-button help-button" aria-label="Interaction help" title="Drag to rotate · Scroll to zoom">
           <span>?</span>
         </button>
@@ -230,17 +165,7 @@ export default function App() {
         HAPPY 20/10<br />MY LOVE <span>✳</span>
       </div>
 
-      <div className={`music-player-backdrop ${musicPlayerOpen ? 'is-open' : ''}`} aria-hidden={!musicPlayerOpen}>
-        <section className="music-player-card" role="dialog" aria-modal="true" aria-label="Trình phát nhạc YouTube">
-          <div className="music-player-heading">
-            <span>NHẠC DÀNH TẶNG EM</span>
-            <button className="music-player-close" onClick={closeMusicPlayer} aria-label="Đóng trình phát nhạc">
-              <X />
-            </button>
-          </div>
-          <div id="youtube-romantic-player" className="youtube-player-host" />
-        </section>
-      </div>
+      <audio ref={audioRef} src="/music/gift-recording.m4a" preload="auto" />
 
       {intro && (
         <div className="intro-curtain">
